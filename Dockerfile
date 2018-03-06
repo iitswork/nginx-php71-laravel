@@ -211,7 +211,7 @@ RUN echo "cgi.fix_pathinfo=0" > ${php_vars} &&\
 
 COPY nginx.conf /etc/nginx/nginx.conf
 
-RUN apk update && apk add -u python=2.7.12-r0 py-pip=8.1.2-r0
+RUN apk update && apk add -u python py-pip
 RUN pip install supervisor
 
 #Install supervisor
