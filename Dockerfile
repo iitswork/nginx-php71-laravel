@@ -1,46 +1,38 @@
 FROM php:7.1-fpm-alpine
 
-RUN apk update && \
-    apk add \
-        curl \
-        libmemcached-dev \
-        zlib-dev \
+RUN apk add --update --no-cache \
+        zlib \
         libjpeg-turbo-dev \
         libpng-dev \
         freetype-dev \
-        openssl-dev \
-        libmcrypt-dev \
-        autoconf \
-        g++ \
-        make
-
-RUN docker-php-ext-install \
-                    mcrypt \
-                    pdo_mysql \
-                    zip
-
-
- 
+        libmcrypt-dev
+        
 
 RUN docker-php-ext-configure gd \
         --enable-gd-native-ttf \
         --with-jpeg-dir=/usr/lib \
-        --with-freetype-dir=/usr/include/freetype2 && \
-    docker-php-ext-install gd
+        --with-freetype-dir=/usr/include/freetype2 \
+	&& docker-php-ext-install gd \
+					mcrypt \
+                    pdo_mysql \
+                    zip
 
 #####################################
 # MongoDB:
 #####################################
 
-RUN pecl install mongodb && \
-    docker-php-ext-enable mongodb    
+RUN apk add --update --no-cache --virtual .build-dep\
+		autoconf \
+        g++ \
+		gcc \
+        make \
+	&& pecl install mongodb && \
+    docker-php-ext-enable mongodb \
+	&& apk del .build-dep
+
 
 ADD ./php.ini /usr/local/etc/php/conf.d
 ADD ./php.pool.conf /usr/local/etc/php-fpm.d/
-
-RUN rm -rf /var/cache/apk/* \
-    && find / -type f -iname \*.apk-new -delete \
-    && rm -rf /var/cache/apk/*
 
 WORKDIR /var/www/html
 ADD index.php /var/www/html/public/index.php
@@ -54,7 +46,6 @@ RUN curl -s http://getcomposer.org/installer | php && mv ./composer.phar /usr/lo
 #####################################
 # NGINX:
 #####################################
-
 ENV NGINX_VERSION 1.13.7
 
 RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
@@ -184,7 +175,7 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	# forward request and error logs to docker log collector
 	&& ln -sf /dev/stdout /var/log/nginx/access.log \
 	&& ln -sf /dev/stderr /var/log/nginx/error.log
-
+	
 ENV fpm_conf /usr/local/etc/php-fpm.d/www.conf
 ENV php_vars /usr/local/etc/php/conf.d/docker-vars.ini
 # tweak php-fpm config
@@ -210,9 +201,11 @@ RUN echo "cgi.fix_pathinfo=0" > ${php_vars} &&\
         ${fpm_conf}
 
 COPY nginx.conf /etc/nginx/nginx.conf
-
-RUN apk update && apk add -u python py-pip
-RUN pip install supervisor
+RUN apk add --update --no-cache --virtual .build-dep \
+	python \
+	py-pip \
+	&& pip install supervisor \
+	&& apk del .build-dep
 
 #Install supervisor
 RUN mkdir -p /var/log/supervisor && \
