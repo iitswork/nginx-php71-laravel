@@ -204,8 +204,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 RUN apk add --update --no-cache --virtual .build-dep \
 	python \
 	py-pip \
-	&& pip install supervisor \
-	&& apk del .build-dep
+	&& pip install supervisor
 
 #Install supervisor
 RUN mkdir -p /var/log/supervisor && \
