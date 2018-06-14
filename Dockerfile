@@ -1,21 +1,27 @@
-FROM php:7.1-fpm-alpine
+FROM php:7.2-fpm-alpine
 
 RUN apk add --update --no-cache \
         zlib \
         libjpeg-turbo-dev \
         libpng-dev \
         freetype-dev \
-        libmcrypt-dev
+        libmcrypt-dev \
+		openssl-dev
         
 
 RUN docker-php-ext-configure gd \
-        --enable-gd-native-ttf \
         --with-jpeg-dir=/usr/lib \
-        --with-freetype-dir=/usr/include/freetype2 \
-	&& docker-php-ext-install gd \
-					mcrypt \
+        --with-freetype-dir=/usr/include/freetype2
+
+RUN	docker-php-ext-install gd \
                     pdo_mysql \
                     zip
+
+#####################################
+# Mcrypt:
+#####################################
+RUN pecl install mcrypt-1.0.1 && \
+    docker-php-ext-enable mcrypt
 
 #####################################
 # MongoDB:
@@ -29,7 +35,6 @@ RUN apk add --update --no-cache --virtual .build-dep\
 	&& pecl install mongodb && \
     docker-php-ext-enable mongodb \
 	&& apk del .build-dep
-
 
 ADD ./php.ini /usr/local/etc/php/conf.d
 ADD ./php.pool.conf /usr/local/etc/php-fpm.d/
