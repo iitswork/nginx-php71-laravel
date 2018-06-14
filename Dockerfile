@@ -6,7 +6,11 @@ RUN apk add --update --no-cache \
         libpng-dev \
         freetype-dev \
         libmcrypt-dev \
-		openssl-dev
+		openssl-dev \
+		autoconf \
+		g++ \
+		gcc \
+		make
         
 
 RUN docker-php-ext-configure gd \
@@ -20,21 +24,15 @@ RUN	docker-php-ext-install gd \
 #####################################
 # Mcrypt:
 #####################################
-RUN pecl install mcrypt-1.0.1 && \
-    docker-php-ext-enable mcrypt
+RUN pecl install mcrypt-1.0.1 \ 
+	&& docker-php-ext-enable mcrypt
 
 #####################################
 # MongoDB:
 #####################################
 
-RUN apk add --update --no-cache --virtual .build-dep\
-		autoconf \
-        g++ \
-		gcc \
-        make \
-	&& pecl install mongodb && \
-    docker-php-ext-enable mongodb \
-	&& apk del .build-dep
+RUN pecl install mongodb \
+    && docker-php-ext-enable mongodb
 
 ADD ./php.ini /usr/local/etc/php/conf.d
 ADD ./php.pool.conf /usr/local/etc/php-fpm.d/
