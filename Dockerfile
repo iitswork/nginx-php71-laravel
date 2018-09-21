@@ -13,25 +13,14 @@ RUN apk add nginx
 COPY nginx.conf /etc/nginx/nginx.conf
 
 #supervisor
-RUN apk add --update --no-cache --virtual .build-dep \
-	python \
-	py-pip \
-	&& pip install supervisor
-
-RUN mkdir -p /var/log/supervisor && \
-    mkdir -p /var/run/sshd && \
-    mkdir -p /var/run/supervisord
+RUN apk add --no-cache supervisor
 
 ADD supervisord.conf /etc/supervisord.conf
-ADD start.sh /start.sh
-RUN chmod +x /start.sh
 
-EXPOSE 9000 443 80
+EXPOSE 443 80
 
 STOPSIGNAL SIGTERM
 
 WORKDIR /var/www/html
 
-CMD ["sh","/start.sh"]
-
-# CMD ["nginx", "-g", "daemon off;"]
+CMD ["supervisord", "-n", "-c", "/etc/supervisord.conf"]
