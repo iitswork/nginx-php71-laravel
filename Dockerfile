@@ -23,4 +23,4 @@ STOPSIGNAL SIGTERM
 
 WORKDIR /var/www/html
 
-CMD ["supervisord", "-n", "-c", "/etc/supervisord.conf"]
+CMD ["supervisord", "-c", "/etc/supervisord.conf"]
